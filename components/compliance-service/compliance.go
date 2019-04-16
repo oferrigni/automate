@@ -93,10 +93,28 @@ func runHungJobs(ctx context.Context, scheduledJobsIds []string, schedulerServer
 	schedulerServer.RunHungJobs(ctx, scheduledJobsIds)
 }
 
+func acceptInspecLicense() error {
+	licenseDir := os.Getenv("HOME") + "/.chef/accepted_licenses"
+	err := os.MkdirAll(licenseDir, os.ModePerm)
+	if err != nil {
+		return errors.Wrap(err, "InSpec license mkdir")
+	}
+	_, err = os.Create(licenseDir + "/inspec")
+	if err != nil {
+		return errors.Wrap(err, "InSpec license create")
+	}
+	return err
+}
+
 // here we execute migrations, create the es and pg backends, read certs, set up the needed env vars,
 // and modify config info
 func initBits(ctx context.Context, conf *config.Compliance) (db *pgdb.DB, connFactory *secureconn.Factory, esr relaxting.ES2Backend, statusSrv *statusserver.Server, err error) {
 	statusSrv = statusserver.New()
+
+	err = acceptInspecLicense()
+	if err != nil {
+		return db, connFactory, esr, statusSrv, err
+	}
 
 	statusserver.AddMigrationUpdate(statusSrv, statusserver.MigrationLabelPG, "Initializing DB connection and schema migration...")
 	// start pg backend
