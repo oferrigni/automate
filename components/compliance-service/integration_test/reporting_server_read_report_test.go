@@ -36,7 +36,7 @@ func TestReadReport(t *testing.T) {
 	}{
 		{
 			description:     "Projects: user has access to all projects",
-			allowedProjects: []string{"*"},
+			allowedProjects: []string{authzConstants.AllProjectsExternalID},
 			expectedId:      reportId,
 		},
 		{
